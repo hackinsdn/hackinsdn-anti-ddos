@@ -31,15 +31,22 @@ var controls = {};
 var ifindexes = {};
 
 function fetchIfIndexes(retry) {
-  var resp = http2({
-    url:settings.topologyIfIndexesUrl,
-    headers:{'Accept':'application/json'},
-    operation:'get',
-  });
-  ifindexes = JSON.parse(resp.body);
-  if (resp.status == 200) {
-    logInfo("HackInSDN DDoS - topology updated (ifIndexes)")
-    return;
+  var error = null;
+  try {
+    var resp = http2({
+      url:settings.topologyIfIndexesUrl,
+      headers:{'Accept':'application/json'},
+      operation:'get',
+    });
+  } catch(err) {
+    error = err;
+  }
+  if (!error) {
+    ifindexes = JSON.parse(resp.body);
+    if (resp.status == 200) {
+      logInfo("HackInSDN DDoS - topology updated (ifIndexes)")
+      return;
+    }
   }
   if (retry == 0) {
     logWarning("HackInSDN DDoS - Failed to obtain topology (wont be able to process alerts)");
@@ -309,14 +316,18 @@ setIntervalHandler(function() {
    // keep control if threshold still triggered
    if(thresholdTriggered(rec.threshold,rec.agent,rec.metric,rec.flowKey)) continue;
 
-   var resp = http2({
-    url:'http://'+settings.kytosserver+':8181/api/hackinsdn/containment/v1/'
-        +encodeURIComponent(rec.containmentId),
-    headers:{'Accept':'application/json'},
-    operation:'delete',
-    user:settings.kytosuser,
-    password:settings.kytospassword,
-   });
+   try {
+     var resp = http2({
+       url:'http://'+settings.kytosserver+':8181/api/hackinsdn/containment/v1/'
+           +encodeURIComponent(rec.containmentId),
+       headers:{'Accept':'application/json'},
+       operation:'delete',
+       user:settings.kytosuser,
+       password:settings.kytospassword,
+     });
+   } catch(err) {
+     logInfo("HackInSDN DDoS - Failed to unblock " + key + " containment_id="+rec.containmentId+" error: "+err);
+   }
 
    delete controls[key];
 
