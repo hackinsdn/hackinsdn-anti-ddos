@@ -253,14 +253,19 @@ setEventHandler(function(evt) {
     msg.redirect_to = {outport:settings.redirect_to};
   }
 
-  var resp = http2({
-    url:'http://'+settings.kytosserver+':8181/api/hackinsdn/containment/v1/',
-    headers:{'Content-Type':'application/json','Accept':'application/json'},
-    operation:'post',
-    user:settings.kytosuser,
-    password:settings.kytospassword,
-    body: JSON.stringify(msg)
-  });
+  try {
+    var resp = http2({
+      url:'http://'+settings.kytosserver+':8181/api/hackinsdn/containment/v1/',
+      headers:{'Content-Type':'application/json','Accept':'application/json'},
+      operation:'post',
+      user:settings.kytosuser,
+      password:settings.kytospassword,
+      body: JSON.stringify(msg)
+    });
+  } catch(err) {
+    logWarning("HackInSDN DDoS - Failed to submit Kytos containment request: " + err);
+    return;
+  }
 
   if (resp.status != 200) {
     logWarning("HackInSDN DDoS - Failed to submit Kytos containment request: " + resp.body);
