@@ -160,7 +160,7 @@ setEventHandler(function(evt) {
     return;
   }
 
-  var key = evt.thresholdID+'-'+evt.flowKey;
+  var key = evt.thresholdID+'-'+evt.agent+'-'+evt.dataSource+'-'+evt.flowKey;
   if(controls[key]) {
     logWarning("HackInSDN DDoS - Already blocked. Ignoring..");
     return;
